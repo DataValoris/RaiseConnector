@@ -1,0 +1,6 @@
+tensorflow==2.2.0
+keras==2.3.1
+requests==2.22.0
+numpy==1.19.5
+getch==1.0; sys_platform=="linux" or sys_platform=="darwin"
+psutil==5.7.3
