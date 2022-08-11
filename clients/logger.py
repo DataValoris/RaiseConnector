@@ -43,7 +43,7 @@ class LoggerWritter(object):
     def print_agents(self, f, **kwargs):
         f.write(f"<Local agents>\n")
         try:
-            agents_dir = os.path.join(os.path.abspath(kwargs.get("agents_path")), kwargs.get("project_id"))
+            agents_dir = os.path.join(os.path.abspath(kwargs.get("agents_path")), str(kwargs.get("project_id")))
             files: list = [f for f in os.listdir(agents_dir) if os.path.isfile(os.path.join(agents_dir, f))]
             files_ids = list(
                 set(

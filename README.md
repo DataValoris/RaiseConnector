@@ -71,5 +71,5 @@ python3 run_population.py --config_file project.cfg --train_file examples/multi_
 #### For reproducibility for the same source model
 > You can add a seed flag.
 ```
-PYTHONHASHSEED=42 python3 run_population.py --config_file project.cfg --train_file examples/functional_model.py --set_seed=42
+PYTHONHASHSEED=42 python3 run_population.py --config_file project.cfg --train_file examples/functional_model.py --set_seed=42 --project_id <your_project_id>
 ```

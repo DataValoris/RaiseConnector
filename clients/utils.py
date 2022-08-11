@@ -2,7 +2,7 @@ import argparse
 import importlib.util
 import json
 import os
-from configparser import ConfigParser
+from configparser import ConfigParser, NoOptionError
 from functools import singledispatch
 
 import numpy as np
@@ -22,6 +22,9 @@ def parse_args():
         required=True,
     )
     parser.add_argument(
+        "--project_id", dest="project_id", help="id of project that will optimize", type=int, required=True
+    )
+    parser.add_argument(
         "--set_seed", dest="set_seed", help="value for reproducibility results for the same source model", type=int
     )
     cmd_args = parser.parse_args()
@@ -31,7 +34,7 @@ def parse_args():
     spec = importlib.util.spec_from_file_location("train", cmd_args.train_file)
     train = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(train)
-    return config, train.Trainer, cmd_args.set_seed, cmd_args
+    return config, train.Trainer, cmd_args.set_seed, cmd_args.project_id, cmd_args
 
 
 def make_dir_if_not_exists(name):
@@ -92,6 +95,17 @@ def check_connector(api, client_version):
         print(f"Connector version: {client_version}")
     else:
         raise ConnectorError("Your connector version isn't latest, please upload new version connector")
+
+
+def create_token_if_not_exists(config, config_path):
+    try:
+        config.get("DEFAULT", "token")
+    except NoOptionError:
+        token = input("Please enter a user token\n")
+        # save if token doesn't exists
+        config["DEFAULT"]["token"] = token
+        with open(config_path, 'w') as new_config:
+            config.write(new_config)
 
 
 def create_dir_if_not_exists(path):
