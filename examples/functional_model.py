@@ -175,3 +175,4 @@ if __name__ == "__main__":
 
     trainer = Trainer(keras=keras)
     trainer.create_model()
+    print("Model successfully created")

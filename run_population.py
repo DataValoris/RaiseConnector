@@ -19,7 +19,7 @@ from clients.utils import (
     make_directories,
     parse_args,
     read_model,
-    create_token_if_not_exists
+    create_token_and_project_id
 )
 from examples.itrainer import ITrainer
 
@@ -84,11 +84,12 @@ def get_tolerance(metric, initial_score, project_tolerance):
         return max(initial_score - project_tolerance / 100, 0.0)
 
 
-def run_population(project_config, trainer_class, project_id, seed_value=None):
+def run_population(project_config, trainer_class, seed_value=None):
     global process_exit_flag
     print_lib_versions()
 
     token = project_config.get("DEFAULT", "token")
+    project_id = int(project_config.get("DEFAULT", "project_id"))
     agents_dir = project_config.get("DEFAULT", "agents_path")
     population_dir = project_config.get("DEFAULT", "mutants_path")
     url = project_config.get("DEFAULT", "url")
@@ -289,6 +290,7 @@ def run_population(project_config, trainer_class, project_id, seed_value=None):
 
 
 if __name__ == "__main__":
+    config, trainer_cl, seed, args = parse_args()
     try:
         # handle ctrl+C input for stop the process gracefully
         original_sigint = signal.getsignal(signal.SIGINT)
@@ -296,10 +298,9 @@ if __name__ == "__main__":
         signal.signal(signal.SIGABRT, terminate_gracefully)
         signal.signal(signal.SIGSEGV, terminate_gracefully)
 
-        config, trainer_cl, seed, project_id, args = parse_args()
-        create_token_if_not_exists(config, args.config_file)
+        create_token_and_project_id(config, args.config_file, args.token, args.project_id)
         Logger.init_project(cfg=dict(config.items("DEFAULT")), cmd_args=vars(args))
-        run_population(project_config=config, trainer_class=trainer_cl, project_id=project_id, seed_value=seed)
+        run_population(project_config=config, trainer_class=trainer_cl, seed_value=seed)
     except Exception as err:
         status = "error"
         if isinstance(err, KeyboardInterrupt):
@@ -310,17 +311,16 @@ if __name__ == "__main__":
             )
             print(err)
             sys.exit(0)
-        config, trainer_cl, seed, project_id, args = parse_args()
         Logger.full_stamp(
             config=args.config_file,
             trainer_cl=args.train_file,
             seed=args.set_seed,
-            project_id=project_id,
+            project_id=config and config.get("DEFAULT", "project_id"),
             client_version=config and config.get("DEFAULT", "client_version"),
             agents_path=config and config.get("DEFAULT", "agents_path"),
         )
         if not isinstance(err, ConnectionError):
             RequestToApi(config.get("DEFAULT", "url"), config.get("DEFAULT", "token")).modify_project(
-                project_id=project_id, request_params={"status": status}
+                project_id=int(config.get("DEFAULT", "project_id")), request_params={"status": status}
             )
         raise err

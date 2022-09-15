@@ -22,7 +22,10 @@ def parse_args():
         required=True,
     )
     parser.add_argument(
-        "--project_id", dest="project_id", help="id of project that will optimize", type=int, required=True
+        "--project_id", dest="project_id", help="id of project that will optimize", required=False
+    )
+    parser.add_argument(
+        "--token", dest="token", help="user token", required=False
     )
     parser.add_argument(
         "--set_seed", dest="set_seed", help="value for reproducibility results for the same source model", type=int
@@ -34,7 +37,7 @@ def parse_args():
     spec = importlib.util.spec_from_file_location("train", cmd_args.train_file)
     train = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(train)
-    return config, train.Trainer, cmd_args.set_seed, cmd_args.project_id, cmd_args
+    return config, train.Trainer, cmd_args.set_seed, cmd_args
 
 
 def make_dir_if_not_exists(name):
@@ -97,13 +100,15 @@ def check_connector(api, client_version):
         raise ConnectorError("Your connector version isn't latest, please upload new version connector")
 
 
-def create_token_if_not_exists(config, config_path):
-    try:
-        config.get("DEFAULT", "token")
-    except NoOptionError:
-        token = input("Please enter a user token\n")
-        # save if token doesn't exists
-        config["DEFAULT"]["token"] = token
+def create_token_and_project_id(config, config_path, token, project_id):
+    config_changed = False
+    if "token" not in config["DEFAULT"] or token:
+        config["DEFAULT"]["token"] = token or input("Please enter a token\n")
+        config_changed = True
+    if "project_id" not in config["DEFAULT"] or project_id:
+        config["DEFAULT"]["project_id"] = project_id or input("Please enter a project ID\n")
+        config_changed = True
+    if config_changed:
         with open(config_path, 'w') as new_config:
             config.write(new_config)
 
