@@ -1,5 +1,5 @@
 ### rAIse client
-This readme file for connector version 2.4.8
+This readme file for connector version 2.4.9
 
 #### Dependency versions
 ```

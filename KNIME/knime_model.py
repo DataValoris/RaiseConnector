@@ -1,4 +1,3 @@
-import json
 import os
 
 import run_population as krp
@@ -11,13 +10,8 @@ x_train, y_train, x_test, y_test = krp.x_train, krp.y_train, krp.x_test, krp.y_t
 
 
 class Trainer(ITrainer):
-    @staticmethod
-    def save_model(model, path_dir="InitialModel"):
-        if not os.path.exists(path_dir):
-            os.makedirs(path_dir)
-        model.save_weights(os.path.join(path_dir, "model_weights.h5"), overwrite=True)
-        with open(os.path.join(path_dir, "model.config"), "w") as f:
-            json.dump(model.to_json(), f)
+    def load_data(self):
+        pass
 
     def create_model(self):
         pass
@@ -42,12 +36,13 @@ class Trainer(ITrainer):
         )
 
         train_accuracy = results.history["accuracy"][-1]
-        test_accuracy = results.history["val_accuracy"][-1]
-        return train_accuracy, test_accuracy
+        validation_accuracy = results.history["val_accuracy"][-1]
+        return train_accuracy, validation_accuracy
 
     def evaluate_func(self, model):
         batch_size = 200
 
         model.compile(loss=self.keras.losses.categorical_crossentropy, optimizer="adam", metrics=["accuracy"])
         results = model.evaluate(x_test, y_test, batch_size=batch_size, verbose=2)
-        return results[-1]
+        test_accuracy = results[-1]
+        return test_accuracy

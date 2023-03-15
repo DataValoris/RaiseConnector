@@ -134,13 +134,13 @@ def run_population(project_config, trainer_class, seed_value=None):
 
         client_model_config = read_model(client_model_config_path)
         model, client_model_config = client.check_framework(client_model_config, client_model_weights_path, framework)
-        evaluation_score = float(trainer.evaluate_func(model))
-        train_score = evaluation_score
+        test_fitness = float(trainer.evaluate_func(model))
+        train_fitness = test_fitness
         validation_params_count = model.count_params()
 
         initial_mutant = api.create_mutant(
             request_params={
-                "score": evaluation_score,
+                "score": test_fitness,
                 "size": validation_params_count,
                 "generation": 0,
                 "project_id": project_id,
@@ -161,7 +161,7 @@ def run_population(project_config, trainer_class, seed_value=None):
         # for case if doesnt need all processing
         if (
             project["scoreLimit"]
-            and evaluation_score > project["scoreLimit"]
+            and test_fitness > project["scoreLimit"]
             or project["sizeLimit"]
             and project["sizeLimit"] > validation_params_count
         ):
@@ -184,16 +184,14 @@ def run_population(project_config, trainer_class, seed_value=None):
             NeuralEffeciency=neural_efficiency,
             metrics=project["metric"],
         )
-        api.start_project(
+        population = client.get_population_from_genotype(
+            genotype=genotype,
+            config=client_config,
+            train_fitness=train_fitness,
+            test_fitness=test_fitness,
             project_id=project_id,
-            instance=client.get_population_from_genotype(
-                genotype=genotype,
-                config=client_config,
-                train_fitness=train_score,
-                validation_fitness=evaluation_score,
-                project_id=project_id,
-            ),
         )
+        api.start_project(project_id=project_id, instance=population)
     project_cycles_info = []
 
     api.modify_project(request_params={"status": "in_progress"}, project_id=project_id)

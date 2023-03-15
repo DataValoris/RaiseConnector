@@ -13,7 +13,7 @@ from clients.utils import create_KeyMap
 
 class AdvancedModel:
     """Given a Genotype, this class creates an AdvancedModel (Agent),
-    with a deep network model consructed based on the Genotype and
+    with a deep network model constructed based on the Genotype and
     the connection map of the NeuralTopology nodes.
 
     During the construction, the function automatically adds Flatten and

@@ -140,11 +140,11 @@ class Client:
                     Logger.local_stamp()
                     print(f"####Could not load from parent: {genotype['ParentId']} using new weights####")
                 self.print_model(agent.Model)
-                train_fitness, test_fitness = train_function(agent.Model)
-                validation_fitness = evaluate_function(agent.Model)
+                train_fitness, validation_fitness = train_function(agent.Model)
+                test_fitness = evaluate_function(agent.Model)
                 genotype["TrnFitness"] = train_fitness
-                genotype["TstFitness"] = test_fitness
                 genotype["ValFitness"] = validation_fitness
+                genotype["TstFitness"] = test_fitness
                 self.save_Agent(agent, AgentsDIR)
                 print(f"Good topology for {genotype['Id']} and parent {genotype['ParentId']}")
                 print("Done, moving on to next agent.")
@@ -198,7 +198,7 @@ class Client:
         train_time = time.time() - start_time
         return population, train_time
 
-    def get_population_from_genotype(self, genotype, config, train_fitness, validation_fitness, project_id="Test_Id"):
+    def get_population_from_genotype(self, genotype, config, train_fitness, test_fitness, project_id="Test_Id"):
         Weights_Path = config["ModelWeightsPath"]
         AgentsDIR = os.path.abspath(config["AgentsDIR"]) + os.sep
         Derived_Agent = AdvancedModel(genotype, client=self)
@@ -207,7 +207,7 @@ class Client:
         print(Derived_Agent.Model.summary())
         self.save_Agent(Derived_Agent, AgentsDIR)
         Derived_Agent.Genotype["TrnFitness"] = train_fitness
-        Derived_Agent.Genotype["TstFitness"] = validation_fitness
+        Derived_Agent.Genotype["TstFitness"] = test_fitness
         Population = self.create_PopulationDict(config, [Derived_Agent.Genotype], project_id)
         return Population
 

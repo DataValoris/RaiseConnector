@@ -1,7 +1,13 @@
-class ITrainer:
+import json
+import os
+from abc import ABC, abstractmethod
+from typing import Tuple, Any
+
+
+class ITrainer(ABC):
     keras = None
 
-    def __init__(self, keras):
+    def __init__(self, keras) -> None:
         self.keras = keras
         self.batch_size = None
         self.num_classes = None
@@ -17,20 +23,29 @@ class ITrainer:
         self.create_dataset = None
         self.train_dataset = None
         self.evaluate_dataset = None
-        self.dataload()
+        self.load_data()
 
-    def dataload(self):
+    @abstractmethod
+    def load_data(self) -> None:
         pass
 
-    @staticmethod
-    def save_model(model, path_dir):
+    @classmethod
+    def save_model(cls, model, path_dir: str = "InitialModel") -> None:
+        if not os.path.exists(path_dir):
+            os.makedirs(path_dir)
+        model.save_weights(os.path.join(path_dir, "model_weights.h5"), overwrite=True)
+        with open(os.path.join(path_dir, "model.config"), "w") as f:
+            json.dump(model.to_json(), f)
+
+    def create_model(self) -> Any:
         pass
 
-    def create_model(self):
+    @abstractmethod
+    def train_func(self, model) -> Tuple[float, float]:
+        """Trains the model and returns train fitness and validation fitness"""
         pass
 
-    def train_func(self, model):
-        pass
-
-    def evaluate_func(self, model):
+    @abstractmethod
+    def evaluate_func(self, model) -> float:
+        """Evaluates the model and returns test fitness"""
         pass

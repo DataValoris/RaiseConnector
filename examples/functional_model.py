@@ -1,4 +1,3 @@
-import json
 import os
 
 if __name__ == "__main__":
@@ -12,7 +11,7 @@ os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 
 
 class Trainer(ITrainer):
-    def dataload(self):
+    def load_data(self):
         self.batch_size = 128
         self.num_classes = 10
         self.evaluate_batch_size = 500
@@ -69,14 +68,6 @@ class Trainer(ITrainer):
             x_test = x_test.reshape(x_test.shape[0], self.img_rows, self.img_cols, 1)
         x_test = x_test.astype("float32") / 255
         self.evaluate_dataset = x_test, y_test
-
-    @staticmethod
-    def save_model(model, path_dir="InitialModel"):
-        if not os.path.exists(path_dir):
-            os.makedirs(path_dir)
-        model.save_weights(os.path.join(path_dir, "model_weights.h5"), overwrite=True)
-        with open(os.path.join(path_dir, "model.config"), "w") as f:
-            json.dump(model.to_json(), f)
 
     def create_model(self):
         x_train, y_train, x_test, y_test, input_shape = self.create_dataset
@@ -152,8 +143,8 @@ class Trainer(ITrainer):
         )
 
         train_accuracy = results.history["accuracy"][-1]
-        test_accuracy = results.history["val_accuracy"][-1]
-        return train_accuracy, test_accuracy
+        validation_accuracy = results.history["val_accuracy"][-1]
+        return train_accuracy, validation_accuracy
 
     def evaluate_func(self, model):
         x_test, y_test = self.evaluate_dataset
@@ -163,7 +154,8 @@ class Trainer(ITrainer):
         y_test = self.keras.utils.to_categorical(y_test, self.evaluate_num_classes)
         model.compile(loss=self.keras.losses.categorical_crossentropy, optimizer="adam", metrics=["accuracy"])
         results = model.evaluate(x_test, y_test, batch_size=self.evaluate_batch_size)
-        return results[-1]
+        test_accuracy = results[-1]
+        return test_accuracy
 
 
 if __name__ == "__main__":
